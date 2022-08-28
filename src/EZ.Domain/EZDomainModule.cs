@@ -36,6 +36,7 @@ public class EZDomainModule : AbpModule
         Configure<AbpMultiTenancyOptions>(options =>
         {
             options.IsEnabled = MultiTenancyConsts.IsEnabled;
+            options.DatabaseStyle = MultiTenancyDatabaseStyle.PerTenant;
         });
 
 #if DEBUG

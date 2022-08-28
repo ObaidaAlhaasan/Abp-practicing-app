@@ -3,6 +3,7 @@ using System;
 using EZ.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Volo.Abp.EntityFrameworkCore;
@@ -12,9 +13,10 @@ using Volo.Abp.EntityFrameworkCore;
 namespace EZ.Migrations
 {
     [DbContext(typeof(EZDbContext))]
-    partial class EZDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220813214550_Added_AuthorId_To_Book")]
+    partial class Added_AuthorId_To_Book
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,10 +82,6 @@ namespace EZ.Migrations
                     b.Property<string>("ShortBio")
                         .HasColumnType("text");
 
-                    b.Property<Guid?>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("TenantId");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Name");
@@ -135,10 +133,6 @@ namespace EZ.Migrations
 
                     b.Property<DateTime>("PublishDate")
                         .HasColumnType("timestamp without time zone");
-
-                    b.Property<Guid?>("TenantId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("TenantId");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");

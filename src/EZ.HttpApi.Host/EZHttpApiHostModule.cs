@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using ElectronNET.API;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Cors;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using EZ.EntityFrameworkCore;
 using EZ.MultiTenancy;
+using Microsoft.AspNetCore.SpaServices.AngularCli;
 using StackExchange.Redis;
 using Microsoft.OpenApi.Models;
 using Volo.Abp;
@@ -44,6 +46,8 @@ public class EZHttpApiHostModule : AbpModule
     {
         var configuration = context.Services.GetConfiguration();
         var hostingEnvironment = context.Services.GetHostingEnvironment();
+        context.Services.AddControllersWithViews();
+        context.Services.AddSpaStaticFiles(configuration => { configuration.RootPath = "ClientApp/dist"; });
 
         ConfigureConventionalControllers();
         ConfigureAuthentication(context, configuration);
@@ -86,10 +90,7 @@ public class EZHttpApiHostModule : AbpModule
 
     private void ConfigureConventionalControllers()
     {
-        Configure<AbpAspNetCoreMvcOptions>(options =>
-        {
-            options.ConventionalControllers.Create(typeof(EZApplicationModule).Assembly);
-        });
+        Configure<AbpAspNetCoreMvcOptions>(options => { options.ConventionalControllers.Create(typeof(EZApplicationModule).Assembly); });
     }
 
     private void ConfigureAuthentication(ServiceConfigurationContext context, IConfiguration configuration)
@@ -109,7 +110,7 @@ public class EZHttpApiHostModule : AbpModule
             configuration["AuthServer:Authority"],
             new Dictionary<string, string>
             {
-                    {"EZ", "EZ API"}
+                { "EZ", "EZ API" }
             },
             options =>
             {
@@ -191,12 +192,18 @@ public class EZHttpApiHostModule : AbpModule
             app.UseDeveloperExceptionPage();
         }
 
+
         app.UseAbpRequestLocalization();
         app.UseCorrelationId();
         app.UseStaticFiles();
         app.UseRouting();
         app.UseCors();
         app.UseAuthentication();
+
+        if (!env.IsDevelopment())
+        {
+            app.UseSpaStaticFiles();
+        }
 
         if (MultiTenancyConsts.IsEnabled)
         {
@@ -215,9 +222,46 @@ public class EZHttpApiHostModule : AbpModule
             options.OAuthScopes("EZ");
         });
 
+        app.UseEndpoints(endpoints =>
+        {
+            endpoints.MapControllerRoute(
+                name: "default",
+                pattern: "{controller}/{action=Index}/{id?}");
+        });
+
+        app.UseSpa(spa =>
+        {
+            // To learn more about options for serving an Angular SPA from ASP.NET Core,
+            // see https://go.microsoft.com/fwlink/?linkid=864501
+
+            spa.Options.SourcePath = "ClientApp";
+
+            if (env.IsDevelopment())
+            {
+                spa.Options.DevServerPort = 4200;
+                spa.UseAngularCliServer(npmScript: "start");
+            }
+        });
+
         app.UseAuditing();
         app.UseAbpSerilogEnrichers();
         app.UseUnitOfWork();
         app.UseConfiguredEndpoints();
+
+        // TODO: Check Https
+        if (!env.IsDevelopment())
+            app.UseHttpsRedirection();
+
+        if (HybridSupport.IsElectronActive)
+        {
+            Console.WriteLine("Electron is active");
+            CreateWindow();
+        }
+    }
+
+    private async void CreateWindow()
+    {
+        var window = await Electron.WindowManager.CreateWindowAsync();
+        window.OnClosed += () => { Electron.App.Quit(); };
     }
 }

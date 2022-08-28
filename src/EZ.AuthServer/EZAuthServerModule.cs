@@ -43,7 +43,7 @@ namespace EZ;
     typeof(AbpAspNetCoreMvcUiLeptonXLiteThemeModule),
     typeof(EZEntityFrameworkCoreModule),
     typeof(AbpAspNetCoreSerilogModule)
-    )]
+)]
 public class EZAuthServerModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
@@ -98,24 +98,22 @@ public class EZAuthServerModule : AbpModule
         {
             options.StyleBundles.Configure(
                 LeptonXLiteThemeBundles.Styles.Global,
-                bundle =>
-                {
-                    bundle.AddFiles("/global-styles.css");
-                }
+                bundle => { bundle.AddFiles("/global-styles.css"); }
             );
         });
 
         Configure<AbpAuditingOptions>(options =>
         {
-                //options.IsEnabledForGetRequests = true;
-                options.ApplicationName = "AuthServer";
+            //options.IsEnabledForGetRequests = true;
+            options.ApplicationName = "AuthServer";
         });
 
         if (hostingEnvironment.IsDevelopment())
         {
             Configure<AbpVirtualFileSystemOptions>(options =>
             {
-                options.FileSets.ReplaceEmbeddedByPhysical<EZDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}EZ.Domain.Shared"));
+                options.FileSets.ReplaceEmbeddedByPhysical<EZDomainSharedModule>(Path.Combine(hostingEnvironment.ContentRootPath,
+                    $"..{Path.DirectorySeparatorChar}EZ.Domain.Shared"));
                 options.FileSets.ReplaceEmbeddedByPhysical<EZDomainModule>(Path.Combine(hostingEnvironment.ContentRootPath, $"..{Path.DirectorySeparatorChar}EZ.Domain"));
             });
         }
@@ -129,14 +127,12 @@ public class EZAuthServerModule : AbpModule
             options.Applications["Angular"].Urls[AccountUrlNames.PasswordReset] = "account/reset-password";
         });
 
-        Configure<AbpBackgroundJobOptions>(options =>
-        {
-            options.IsJobExecutionEnabled = false;
-        });
+        Configure<AbpBackgroundJobOptions>(options => { options.IsJobExecutionEnabled = false; });
 
         Configure<AbpDistributedCacheOptions>(options =>
         {
             options.KeyPrefix = "EZ:";
+            options.HideErrors = true;
         });
 
         var dataProtectionBuilder = context.Services.AddDataProtection().SetApplicationName("EZ");
@@ -189,7 +185,7 @@ public class EZAuthServerModule : AbpModule
         app.UseCors();
         app.UseAuthentication();
         app.UseAbpOpenIddictValidation();
-       
+
         if (MultiTenancyConsts.IsEnabled)
         {
             app.UseMultiTenancy();

@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Apps.App;
+using ElectronNET.API;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
@@ -28,14 +31,15 @@ public class Program
         try
         {
             Log.Information("Starting EZ.HttpApi.Host.");
-            var builder = WebApplication.CreateBuilder(args);
-            builder.Host.AddAppSettingsSecretsJson()
+            await Host.CreateDefaultBuilder(args)
+                .AddAppSettingsSecretsJson()
                 .UseAutofac()
-                .UseSerilog();
-            await builder.AddApplicationAsync<EZHttpApiHostModule>();
-            var app = builder.Build();
-            await app.InitializeApplicationAsync();
-            await app.RunAsync();
+                .UseSerilog()
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.UseElectron(args);
+                    webBuilder.UseStartup<Startup>();
+                }).Build().RunAsync();
             return 0;
         }
         catch (Exception ex)
